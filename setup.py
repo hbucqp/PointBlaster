@@ -18,7 +18,7 @@ except ImportError:
 
 
 requirements = [
-    'Bio', 'pandas', 'numpy', 'cvmblaster','setuptools'
+    'Bio', 'pandas', 'numpy', 'cvmblaster', 'setuptools'
 ]
 
 about = {}
@@ -44,8 +44,8 @@ setup(
     author=about['__author__'],
     author_email=about['__author_email__'],
     packages=find_packages(),
-    # include_package_data=True,
-    package_data={'': ['*']},
+    include_package_data=True,
+    # package_data={'': ['*']},
     platforms="any",
     install_requires=requirements,
     classifiers=[

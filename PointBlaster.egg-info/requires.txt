@@ -1,4 +1,5 @@
 Bio
 pandas
 numpy
-cvmblastersetuptools
+cvmblaster
+setuptools
