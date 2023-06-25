@@ -1,0 +1,3 @@
+gyrA
+23S
+rpsL
