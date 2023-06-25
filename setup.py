@@ -18,7 +18,7 @@ except ImportError:
 
 
 requirements = [
-    'Bio', 'pandas', 'numpy', 'cvmblaster' 'setuptools'
+    'Bio', 'pandas', 'numpy', 'cvmblaster','setuptools'
 ]
 
 about = {}
