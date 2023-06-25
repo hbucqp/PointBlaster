@@ -14,10 +14,12 @@ PointBlaster.egg-info/requires.txt
 PointBlaster.egg-info/top_level.txt
 PointBlaster/db/.DS_Store
 PointBlaster/db/point_mutation/.DS_Store
+PointBlaster/db/point_mutation/campylobacter/.DS_Store
 PointBlaster/db/point_mutation/campylobacter/23S.fsa
 PointBlaster/db/point_mutation/campylobacter/RNA_genes.txt
 PointBlaster/db/point_mutation/campylobacter/campylobacter.comp.b
 PointBlaster/db/point_mutation/campylobacter/campylobacter.fsa
+PointBlaster/db/point_mutation/campylobacter/campylobacter.fsa.original
 PointBlaster/db/point_mutation/campylobacter/campylobacter.length.b
 PointBlaster/db/point_mutation/campylobacter/campylobacter.name
 PointBlaster/db/point_mutation/campylobacter/campylobacter.seq.b
@@ -41,6 +43,10 @@ PointBlaster/db/point_mutation/salmonella/pmrB.fsa
 PointBlaster/db/point_mutation/salmonella/resistens-overview.txt
 PointBlaster/db/point_mutation/salmonella/salmonella.comp.b
 PointBlaster/db/point_mutation/salmonella/salmonella.fsa
+PointBlaster/db/point_mutation/salmonella/salmonella.fsa.original
 PointBlaster/db/point_mutation/salmonella/salmonella.length.b
 PointBlaster/db/point_mutation/salmonella/salmonella.name
 PointBlaster/db/point_mutation/salmonella/salmonella.seq.b
+dist/.DS_Store
+dist/PointBlaster-0.1.4-py3-none-any.whl
+dist/PointBlaster-0.1.4.tar.gz

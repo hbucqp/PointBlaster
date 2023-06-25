@@ -54,5 +54,5 @@ parE	parE	462	CAT	H	Y	Nalidixic acid,Ciprofloxacin	15388468	Target modification	
 parE	parE	499	GCT	A	T	Nalidixic acid,Ciprofloxacin	15388468	Target modification		gyrA_S83Y.F.A;gyrA_D87N.G.Y.K
 parE	parE	514	GTG	V	G	Nalidixic acid,Ciprofloxacin	15388468	Target modification		gyrA_S83Y.F.A;gyrA_D87N.G.Y.K
 acrB	acrB	717	CGG	R	Q,L	Azithromycin	 31730615	Target modification		
-16S_rrsD	16S	1065	C	C	T	Spectinomycin	12402084	Target modification		
-16S_rrsD	16S	1192	C	C	T	Spectinomycin	12402084	Target modification		
+16S-rrsD	16S	1065	C	C	T	Spectinomycin	12402084	Target modification
+16S-rrsD	16S	1192	C	C	T	Spectinomycin	12402084	Target modification
