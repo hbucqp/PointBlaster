@@ -553,11 +553,11 @@ def main():
 
                         gene_list_result = get_align_seq(result_dict)
 
-                        test = find_mutations(
+                        mutation_result = find_mutations(
                             gene_list_result, genes)
                         # print(test)
                         # print(gene_list_result)
-                        f.write(filter_result(test, db_mutations, genes))
+                        f.write(filter_result(mutation_result, db_mutations, genes))
 
                         print(
                             f"Finishing process {file}: writing results to " + str(outfile))
