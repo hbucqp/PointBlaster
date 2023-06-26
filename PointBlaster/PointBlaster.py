@@ -74,7 +74,7 @@ def get_version(rel_path: str) -> str:
 def makeblastdb(file, name):
     cline = NcbimakeblastdbCommandline(
         dbtype="nucl", out=name, input_file=file)
-    print(f"Making {name} database...")
+    print(f'Making {name} database...')
     stdout, stderr = cline()
     print('Finish')
 
@@ -408,10 +408,12 @@ def match_mut_indb(db_mutations, gene_name, aa_pos, aa_ref, aa_alt):
     gene_mut_list = db_mutations[gene_name]
 
     for single_mut_dict in gene_mut_list:
+
         if (aa_pos == single_mut_dict['mut_pos']) and (aa_alt in single_mut_dict['alt_aa']) and (aa_ref == single_mut_dict['ref_aa']):
             save_check = 1
             gene = single_mut_dict['gene_name']
             resistance_phenotype = single_mut_dict['res_drug']
+            # print(save_check, gene, aa_pos, resistance_phenotype)
         else:
             next
 
@@ -436,13 +438,22 @@ def filter_result(mutation_dict, db_mutations, pm_db_list):
         # print(key)
         if key in pm_db_list:
             for item in mutation_dict[key]:
+                # print(key)
                 if item[0] == 'sub':
                     sub_start_pos = item[2]
                     aa_pos = math.ceil(sub_start_pos / 3)
                     aa_ref, aa_alt = get_aa_seq(item[5], item[4])
+                    # print(item[2], item[5], aa_ref, aa_alt)
                     # print(item)
                     save, gene, res_pheno = match_mut_indb(
                         db_mutations, gene_name, aa_pos, aa_ref, aa_alt)
+                    # print(save, gene, res_pheno)
+                if save:
+                        # print(gene_name)
+                    result += f'{gene}\t{aa_ref}{aa_pos}{aa_alt}\t{item[5]} -> {item[4]}\t{aa_ref} -> {aa_alt}\t{res_pheno}\n'
+                    # print('begin')
+                    # print(result)
+                    # print('end')
 
                     # print(aa_pos)
                     # print(aa_ref, aa_alt)
@@ -460,9 +471,15 @@ def filter_result(mutation_dict, db_mutations, pm_db_list):
                     aa_pos = sub_start_pos
                     save, gene, res_pheno = match_mut_indb(
                         db_mutations, gene_name, aa_pos, aa_ref, aa_alt)
-        if save:
-                        # print(gene_name)
-            result += f'{gene}\t{aa_ref}{aa_pos}{aa_alt}\t{item[5]} -> {item[4]}\t{aa_ref} -> {aa_alt}\t{res_pheno}\n'
+                    # print('RNA')
+                    # print(save, gene, res_pheno)
+                if save:
+                    # print(gene_name)
+                    result += f'{gene}\t{aa_ref}{aa_pos}{aa_alt}\t{item[5]} -> {item[4]}\t{aa_ref} -> {aa_alt}\t{res_pheno}\n'
+                    # print('begin')
+                    # print(result)
+                    # print(end)
+
     return result
 
 
@@ -486,7 +503,7 @@ def initialize_db():
                 if file.endswith('.fsa') and os.path.splitext(file)[0] == point_db:
                     file_path = os.path.join(database_path, point_db, file)
                     out_path = os.path.join(database_path, point_db, point_db)
-                    print(f'Making f{point_db} point mutation database...')
+                    print(f'Making {point_db} point mutation database...')
                     Blaster.makeblastdb(file_path, out_path)
 
 
@@ -548,16 +565,22 @@ def main():
                         print(f'Processing {file}')
                         df, result_dict = Blaster(file_path, blastdb,
                                                   output_path, threads, minid, mincov).biopython_blast()
+                        # print(df)
                         db_mutations = get_db_mutations(db_mutations_path)
+                        # print(db_mutations)
                         genes, RNA_genes = get_gene_list(args.s)
 
                         gene_list_result = get_align_seq(result_dict)
+                        # print(gene_list_result)
 
                         mutation_result = find_mutations(
                             gene_list_result, genes)
+                        # print(mutation_result)
+
                         # print(test)
                         # print(gene_list_result)
-                        f.write(filter_result(mutation_result, db_mutations, genes))
+                        f.write(filter_result(
+                            mutation_result, db_mutations, genes))
 
                         print(
                             f"Finishing process {file}: writing results to " + str(outfile))
