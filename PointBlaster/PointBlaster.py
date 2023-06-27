@@ -109,7 +109,9 @@ def get_align_seq(result_dict, ref_fasta):
             sbjct_start = result_dict[item]['SBJSTART']
             sbjct_string = result_dict[item]['SBJCT_SEQ']
             query_string = result_dict[item]['QUERY_SEQ']
+            # print(len(query_string))
             coverage = result_dict[item]['%COVERAGE']
+            # print(coverage)
             identity = result_dict[item]['%IDENTITY']
             gene_list[gene] = (gene, sbjct_start, sbjct_string,
                                query_string, coverage, identity)
@@ -135,6 +137,7 @@ def get_align_seq(result_dict, ref_fasta):
 
             identity = compute_identity(query_string, sbjct_string)
             coverage = len(sbjct_string) * 100 / len(raw_sbjct_seq)
+            # print(coverage)
 
             gene_list[gene] = (gene, sbjct_start, sbjct_string,
                                query_string, coverage, identity)
@@ -224,6 +227,7 @@ def find_mismatch(sbjct_start, sbjct_string, query_string, gene, genes_list):
     mutations = []
 
     shift = 0
+    seq_pos = sbjct_start
     for index in range(sbjct_start - 1, len(sbjct_string)):
 
         # Shift index according to gaps
@@ -235,23 +239,26 @@ def find_mismatch(sbjct_start, sbjct_string, query_string, gene, genes_list):
         sbjct_nuc = sbjct_string[i]
         query_nuc = query_string[i]
 
+        mutation_type = ''
+
         if sbjct_nuc.upper() != query_nuc.upper():
             if sbjct_nuc == '-' or query_nuc == '-':
 
                 # insert mutation
+
                 if sbjct_nuc == '-':
                     mutation_type = 'ins'
                     mut_pos = i + 1
-                    indel_start_pos = i
+                    indel_start_pos = seq_pos
                     indel = get_indel(
                         sbjct_string[i:], query_string[i:])
-                    indel_end_pos = i + 1
+                    indel_end_pos = seq_pos + len(indel) - 1
 
                 # deletion mutation
                 else:
                     mutation_type = 'del'
                     mut_pos = i + 1
-                    indel_start_pos = i + 1
+                    indel_start_pos = seq_pos
                     indel = get_indel(query_string[i:], sbjct_string[i:])
                     indel_end_pos = indel_start_pos + len(indel) - 1
 
@@ -275,68 +282,67 @@ def find_mismatch(sbjct_start, sbjct_string, query_string, gene, genes_list):
             else:
                 mutation_type = 'sub'
                 mut_pos = i + 1
-                sub_start_pos = i + 1
+                sub_start_pos = seq_pos
                 sub_seq = get_substitution(sbjct_string[i:], query_string[i:])
-                sub_end_pos = i + len(sub_seq)
+                sub_end_pos = seq_pos + len(sub_seq) - 1
                 shift = len(sub_seq) - 1
 
                 # print(sub_start_pos, sub_seq, sub_end_pos)
                 if gene in genes_list:
                     # calculate condon if gene is not RNA sequence
-                    if sub_start_pos % 3 == 0:
+                    if seq_pos % 3 == 0:
                         if sub_end_pos % 3 != 0:
-                            ref_seq = sbjct_string[sub_start_pos - 3: sub_start_pos +
-                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            ref_seq = sbjct_string[i - 3 + 1: i +
+                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
 
-                            query_seq = query_string[sub_start_pos - 3: sub_start_pos +
-                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            query_seq = query_string[i - 3 + 1: i +
+                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
                         else:
-                            ref_seq = sbjct_string[sub_start_pos -
-                                                   3: sub_end_pos]
-                            query_seq = query_string[sub_start_pos -
-                                                     3: sub_end_pos]
-                    elif sub_start_pos % 3 == 1:
+                            ref_seq = sbjct_string[i -
+                                                   3 + 1: i + len(sub_seq) - 1 + 1]
+                            query_seq = query_string[i -
+                                                     3 + 1: i + len(sub_seq) - 1 + 1]
+                    elif seq_pos % 3 == 1:
                         if sub_end_pos % 3 != 0:
-                            ref_seq = sbjct_string[sub_start_pos - 1: sub_start_pos +
-                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            ref_seq = sbjct_string[i: i +
+                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
 
-                            query_seq = query_string[sub_start_pos - 1: sub_start_pos +
-                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            query_seq = query_string[i: i +
+                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
                         else:
-                            ref_seq = sbjct_string[sub_start_pos -
-                                                   1: sub_end_pos]
-                            query_seq = query_string[sub_start_pos -
-                                                     1: sub_end_pos]
+                            ref_seq = sbjct_string[i: i + len(sub_seq)]
+                            query_seq = query_string[i: i + len(sub_seq)]
                     else:
                         if sub_end_pos % 3 != 0:
-                            ref_seq = sbjct_string[sub_start_pos - 2: sub_start_pos +
-                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            ref_seq = sbjct_string[i - 1: i +
+                                                   len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
 
-                            query_seq = query_string[sub_start_pos - 2: sub_start_pos +
-                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3))]
+                            query_seq = query_string[i - 1: i +
+                                                     len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
                         else:
-                            ref_seq = sbjct_string[sub_start_pos -
-                                                   2: sub_end_pos]
-                            query_seq = query_string[sub_start_pos -
-                                                     2: sub_end_pos]
+                            ref_seq = sbjct_string[i - 1: i + len(seq)]
+                            query_seq = query_string[i - 1: i + len(seq)]
                 else:
-                    ref_seq = sbjct_string[sub_start_pos - 1: sub_start_pos +
-                                           len(sub_seq) - 1]
+                    ref_seq = sbjct_nuc
 
-                    query_seq = query_string[sub_start_pos - 1: sub_start_pos +
-                                             len(sub_seq) - 1]
+                    query_seq = query_nuc
 
                 # print(ref_seq, query_seq)
                 if len(sub_seq) == 1:
-                    mutation_name = str(sub_start_pos) + \
-                        ref_seq + '->' + query_seq
+                    mutation_name = str(seq_pos) + \
+                        sbjct_nuc + '->' + query_nuc
 
                 else:
-                    mutation_name = str(sub_start_pos) + '_' + \
+                    mutation_name = str(seq_pos) + '_' + \
                         str(sub_end_pos) + ref_seq + '->' + query_seq
 
                 mutations += [[mutation_type, mutation_name, sub_start_pos,
                                sub_end_pos, query_seq, ref_seq]]
+
+        # increment seq_position
+        if mutation_type != 'ins':
+            seq_pos += 1
+    # print(mutations)
     return mutations
 
 
@@ -429,7 +435,7 @@ def find_mutations(gene_list_result, genes_list):
     for item in gene_list_result:
         coverage = float(item[4])
         identity = float(item[5])
-        if (coverage == 100.00) & (identity != 100):
+        if (coverage == 100.00) or (identity != 100):
             mutation_result[item[0]] = find_mismatch(
                 item[1], item[2], item[3], item[0], genes_list)
 
@@ -626,6 +632,7 @@ def main():
                         df, result_dict = Blaster(file_path, blastdb,
                                                   output_path, threads, minid, 20).biopython_blast()
                         # print(result_dict)
+                        # print(result_dict)
                         # print(df)
                         db_mutations = get_db_mutations(db_mutations_path)
                         # print(db_mutations)
@@ -634,6 +641,7 @@ def main():
                         gene_dict_result = get_align_seq(
                             result_dict, ref_fasta)
                         # print(gene_list_result)
+                        # print(gene_dict_result)
 
                         # parse gene_dict_result
                         gene_list_result = []
@@ -644,6 +652,7 @@ def main():
 
                         mutation_result = find_mutations(
                             gene_list_result, genes)
+                        # print(mutation_result)
                         # print(mutation_result)
 
                         # print(test)
