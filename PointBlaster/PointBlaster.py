@@ -79,22 +79,78 @@ def makeblastdb(file, name):
     print('Finish')
 
 
-def get_align_seq(result_dict):
+def get_sbjct_seq(ref_fasta, gene):
+    """
+    obtain gene sequence from reference fasta file of specific specie
+    """
+    for seq_record in SeqIO.parse(open(ref_fasta, mode='r'), 'fasta'):
+        gene_name = seq_record.id.split('___')[0]
+        if gene_name == gene:
+            seq = str(seq_record.seq)
+    return seq
+
+    # seq_record.seq
+
+
+def get_align_seq(result_dict, ref_fasta):
     """
     convert the result from cvmblaster to gene list format like:
     [gene , sbjct_start, sbjct_string, query_string, coverage, identity]
     """
-    gene_list = []
+    gene_list = {}
+
+    # need concatenate hits from same gene
+
+    # check if multiple hits from same gene exist
     for item in result_dict.keys():
         gene = result_dict[item]['GENE']
-        sbjct_start = result_dict[item]['SBJSTART']
-        sbjct_string = result_dict[item]['SBJCT_SEQ']
-        query_string = result_dict[item]['QUERY_SEQ']
-        coverage = result_dict[item]['%COVERAGE']
-        identity = result_dict[item]['%IDENTITY']
-        gene_list += [(gene, sbjct_start, sbjct_string,
-                       query_string, coverage, identity)]
+        if gene not in gene_list.keys():
+
+            sbjct_start = result_dict[item]['SBJSTART']
+            sbjct_string = result_dict[item]['SBJCT_SEQ']
+            query_string = result_dict[item]['QUERY_SEQ']
+            coverage = result_dict[item]['%COVERAGE']
+            identity = result_dict[item]['%IDENTITY']
+            gene_list[gene] = (gene, sbjct_start, sbjct_string,
+                               query_string, coverage, identity)
+        else:
+            new_sbjct_start = result_dict[item]['SBJSTART']
+            new_sbjct_string = result_dict[item]['SBJCT_SEQ']
+            new_query_string = result_dict[item]['QUERY_SEQ']
+
+            # get reference sequence of gene
+            raw_sbjct_seq = get_sbjct_seq(ref_fasta, gene)
+            if new_sbjct_start < gene_list[gene][1]:
+                sbjct_start = new_sbjct_start
+                sbjct_string = raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)] + raw_sbjct_seq[len(
+                    new_sbjct_string):gene_list[gene][1] - 1] + gene_list[gene][2]
+                query_string = new_query_string + \
+                    raw_sbjct_seq[len(new_sbjct_string):gene_list[gene][1] - 1] + gene_list[gene][3]
+            else:
+                sbjct_start = gene_list[gene][1]
+                sbjct_string = gene_list[gene][2] + raw_sbjct_seq[len(
+                    gene_list[gene][2]):new_sbjct_start - 1] + raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)]
+                query_string = gene_list[gene][3] + raw_sbjct_seq[len(
+                    gene_list[gene][2]):new_sbjct_start - 1] + new_query_string
+
+            identity = compute_identity(query_string, sbjct_string)
+            coverage = len(sbjct_string) * 100 / len(raw_sbjct_seq)
+
+            gene_list[gene] = (gene, sbjct_start, sbjct_string,
+                               query_string, coverage, identity)
+
     return gene_list
+
+
+def compute_identity(query_string, sbjct_string):
+    a = 1
+    for i in range(0, len(query_string) - 1):
+        # print(i)
+        if query_string[i] == sbjct_string[i]:
+            a += 1
+    identity = a * 100 / len(sbjct_string)
+    # print(identity)
+    return identity
 
 
 def aa(codon):
@@ -545,6 +601,8 @@ def main():
                 __file__), f'db/point_mutation/{args.s}/{args.s}')
             db_mutations_path = os.path.join(os.path.dirname(
                 __file__), f'db/point_mutation/{args.s}/resistens-overview.txt')
+            ref_fasta = os.path.join(os.path.dirname(
+                __file__), f'db/point_mutation/{args.s}/{args.s}.fsa')
         else:
             sys.exit(1)
 
@@ -563,14 +621,25 @@ def main():
                     # print("TRUE")
                     if Blaster.is_fasta(file_path):
                         print(f'Processing {file}')
+
+                        # lower the blast coverage in order to find 23S point mutaiton
                         df, result_dict = Blaster(file_path, blastdb,
-                                                  output_path, threads, minid, mincov).biopython_blast()
+                                                  output_path, threads, minid, 20).biopython_blast()
+                        # print(result_dict)
                         # print(df)
                         db_mutations = get_db_mutations(db_mutations_path)
                         # print(db_mutations)
                         genes, RNA_genes = get_gene_list(args.s)
 
-                        gene_list_result = get_align_seq(result_dict)
+                        gene_dict_result = get_align_seq(
+                            result_dict, ref_fasta)
+                        # print(gene_list_result)
+
+                        # parse gene_dict_result
+                        gene_list_result = []
+                        for key in gene_dict_result.keys():
+                            if float(gene_dict_result[key][4]) >= float(mincov):
+                                gene_list_result.append(gene_dict_result[key])
                         # print(gene_list_result)
 
                         mutation_result = find_mutations(
