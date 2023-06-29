@@ -127,7 +127,8 @@ def get_align_seq(result_dict, ref_fasta):
                 sbjct_string = raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)] + raw_sbjct_seq[len(
                     new_sbjct_string):gene_list[gene][1] - 1] + gene_list[gene][2]
                 query_string = new_query_string + \
-                    raw_sbjct_seq[len(new_sbjct_string):gene_list[gene][1] - 1] + gene_list[gene][3]
+                    raw_sbjct_seq[len(new_sbjct_string)
+                                      :gene_list[gene][1] - 1] + gene_list[gene][3]
             else:
                 sbjct_start = gene_list[gene][1]
                 sbjct_string = gene_list[gene][2] + raw_sbjct_seq[len(
@@ -611,6 +612,7 @@ def main():
                 __file__), f'db/point_mutation/{args.s}/{args.s}.fsa')
         else:
             sys.exit(1)
+        df_final = pd.DataFrame()
 
         for file in files:
             file_base = str(os.path.basename(os.path.splitext(file)[0]))
@@ -663,6 +665,19 @@ def main():
                         print(
                             f"Finishing process {file}: writing results to " + str(outfile))
             f.close()
+            df_tmp = pd.read_csv(outfile, sep='\t')
+            # print(df_tmp)
+            df_tmp['File'] = file_base
+            df_tmp['Value'] = 1
+            df_final = pd.concat([df_final, df_tmp])
+            # print(df_final)
+
+    df_pivot = df_final.pivot_table(index='File',
+                                    columns='Gene', values='Mutation', aggfunc=lambda x: ','.join(map(str, x)))
+    print(df_pivot)
+    summary_file = os.path.join(output_path, 'PointMutation_Summary.csv')
+
+    df_pivot.to_csv(summary_file)
 
 
 if __name__ == '__main__':
