@@ -26,8 +26,7 @@ def args_parse():
     group.add_argument(
         "-f", help="<input_file>: the PATH of assembled genome file. Could not use with -i")
     parser.add_argument("-o", help="<output_directory>: output PATH")
-    parser.add_argument(
-        '-s', help='<species>: optional var is [salmoenlla, campylobacter], other species will be supported soon')
+    parser.add_argument('-s', type=str, default='salmonella', choices=['salmonella', 'campylobacter'], help='<species>: optional var is [salmonella, campylobacter], other species will be supported soon')
     parser.add_argument('-minid', default=90,
                         help="<minimum threshold of identity>, default=90")
     parser.add_argument('-mincov', default=60,
@@ -124,19 +123,33 @@ def get_align_seq(result_dict, ref_fasta):
             raw_sbjct_seq = get_sbjct_seq(ref_fasta, gene)
             if new_sbjct_start < gene_list[gene][1]:
                 sbjct_start = new_sbjct_start
-                sbjct_string = raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)] + raw_sbjct_seq[len(
-                    new_sbjct_string):gene_list[gene][1] - 1] + gene_list[gene][2]
-                query_string = new_query_string + \
-                    raw_sbjct_seq[len(new_sbjct_string)
-                                      :gene_list[gene][1] - 1] + gene_list[gene][3]
+                second_sbjct_start = gene_list[gene][1]
+                first_sbjct = new_sbjct_string
+                second_sbjct = gene_list[gene][2]
+                first_query = new_query_string
+                second_query = gene_list[gene][3]
             else:
                 sbjct_start = gene_list[gene][1]
-                sbjct_string = gene_list[gene][2] + raw_sbjct_seq[len(
-                    gene_list[gene][2]):new_sbjct_start - 1] + raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)]
-                query_string = gene_list[gene][3] + raw_sbjct_seq[len(
-                    gene_list[gene][2]):new_sbjct_start - 1] + new_query_string
+                second_sbjct_start = new_sbjct_start
+                first_sbjct = gene_list[gene][2]
+                second_sbjct = new_sbjct_string
+                first_query = gene_list[gene][3]
+                second_query = new_query_string
+                # sbjct_string = raw_sbjct_seq[sbjct_start - 1:len(new_sbjct_string)] + raw_sbjct_seq[sbjct_start + len(
+                #     new_sbjct_string) - 1:gene_list[gene][1] - 1 ] + gene_list[gene][2]
+            if (sbjct_start + len(first_sbjct) - 1) <= second_sbjct_start:
+                sbjct_string = first_sbjct + raw_sbjct_seq[sbjct_start + len(
+                    first_sbjct) - 1:second_sbjct_start - 1] + second_sbjct
+                query_string = first_query + raw_sbjct_seq[sbjct_start + len(
+                    first_sbjct) - 1:second_sbjct_start - 1] + second_query
+            else:
+                sbjct_string = first_sbjct + second_sbjct[sbjct_start + len(
+                    first_sbjct) - 1:]
+                querey_string = first_query + second_query[sbjct_start + len(
+                    first_query) - 1:]
 
             identity = compute_identity(query_string, sbjct_string)
+            # print(gene)
             coverage = len(sbjct_string) * 100 / len(raw_sbjct_seq)
             # print(coverage)
 
@@ -148,7 +161,12 @@ def get_align_seq(result_dict, ref_fasta):
 
 def compute_identity(query_string, sbjct_string):
     a = 1
-    for i in range(0, len(query_string) - 1):
+    # print(len(query_string))
+    # print(len(sbjct_string))
+    for i in range(0, len(query_string)):
+        # print(i)
+        # print(query_string[i])
+        # print(sbjct_string[i])
         # print(i)
         if query_string[i] == sbjct_string[i]:
             a += 1
@@ -321,8 +339,8 @@ def find_mismatch(sbjct_start, sbjct_string, query_string, gene, genes_list):
                             query_seq = query_string[i - 1: i +
                                                      len(sub_seq) - 1 + (3 - (sub_end_pos % 3)) + 1]
                         else:
-                            ref_seq = sbjct_string[i - 1: i + len(seq)]
-                            query_seq = query_string[i - 1: i + len(seq)]
+                            ref_seq = sbjct_string[i - 1: i + len(sub_seq)]
+                            query_seq = query_string[i - 1: i + len(sub_seq)]
                 else:
                     ref_seq = sbjct_nuc
 
@@ -575,8 +593,10 @@ def main():
     args = args_parse()
     if args.list:
         show_db_list()
+        sys.exit(1)
     elif args.init:
         initialize_db()
+        sys.exit(1)
     else:
         # threads
         threads = args.t
@@ -603,13 +623,20 @@ def main():
         output_path = os.path.abspath(args.o)
 
         # check if -species var exist
+        species_list = ['salmonella', 'campylobacter']
         if args.s is not None:
-            blastdb = os.path.join(os.path.dirname(
-                __file__), f'db/point_mutation/{args.s}/{args.s}')
-            db_mutations_path = os.path.join(os.path.dirname(
-                __file__), f'db/point_mutation/{args.s}/resistens-overview.txt')
-            ref_fasta = os.path.join(os.path.dirname(
-                __file__), f'db/point_mutation/{args.s}/{args.s}.fsa')
+            if args.s in species_list:
+                blastdb = os.path.join(os.path.dirname(
+                    __file__), f'db/point_mutation/{args.s}/{args.s}')
+                db_mutations_path = os.path.join(os.path.dirname(
+                    __file__), f'db/point_mutation/{args.s}/resistens-overview.txt')
+                ref_fasta = os.path.join(os.path.dirname(
+                    __file__), f'db/point_mutation/{args.s}/{args.s}.fsa')
+            else:
+                print(
+                    "Please input the right species in species_list, the supported species are")
+                print(species_list)
+                sys.exit(1)
         else:
             sys.exit(1)
         df_final = pd.DataFrame()
@@ -674,7 +701,7 @@ def main():
 
     df_pivot = df_final.pivot_table(index='File',
                                     columns='Gene', values='Mutation', aggfunc=lambda x: ','.join(map(str, x)))
-    print(df_pivot)
+    # print(df_pivot)
     summary_file = os.path.join(output_path, 'PointMutation_Summary.csv')
 
     df_pivot.to_csv(summary_file)
