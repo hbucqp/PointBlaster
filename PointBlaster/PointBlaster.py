@@ -391,8 +391,8 @@ def process_substitution(sbjct_string: str, query_string: str, i: int, seq_pos: 
         query_seq = query_string[i:i + len(sub_seq)]
 
     mutation_name = (f"{seq_pos}{sbjct_string[i]}->{query_string[i]}"
-                    if len(sub_seq) == 1
-                    else f"{seq_pos}_{sub_end_pos}{ref_seq}->{query_seq}")
+                     if len(sub_seq) == 1
+                     else f"{seq_pos}_{sub_end_pos}{ref_seq}->{query_seq}")
 
     return MutationInfo(
         type=MUTATION_TYPE_SUB,
@@ -557,7 +557,6 @@ def find_mutations(gene_list_result, genes_list):
         if (coverage == 100.00) or (identity != 100):
             mutation_result[item[0]] = find_mismatch(
                 item[1], item[2], item[3], item[0], genes_list)
-            )
 
     return mutation_result
 
@@ -572,8 +571,8 @@ def get_aa_seq(ref_seq, query_seq):
         print(string[i:i + 3])
 
     """
-    aa_ref=''
-    aa_alt=''
+    aa_ref = ''
+    aa_alt = ''
 
     for i in np.arange(0, len(ref_seq), 3):
         aa_ref += aa(ref_seq[i:i + 3])
@@ -584,17 +583,17 @@ def get_aa_seq(ref_seq, query_seq):
 def match_mut_indb(db_mutations, gene_name, aa_pos, aa_ref, aa_alt):
     """
     """
-    save_check=0
-    resistance_phenotype=''
-    gene=''
-    gene_mut_list=db_mutations[gene_name]
+    save_check = 0
+    resistance_phenotype = ''
+    gene = ''
+    gene_mut_list = db_mutations[gene_name]
 
     for single_mut_dict in gene_mut_list:
 
         if (aa_pos == single_mut_dict['mut_pos']) and (aa_alt in single_mut_dict['alt_aa']) and (aa_ref == single_mut_dict['ref_aa']):
-            save_check=1
-            gene=single_mut_dict['gene_name']
-            resistance_phenotype=single_mut_dict['res_drug']
+            save_check = 1
+            gene = single_mut_dict['gene_name']
+            resistance_phenotype = single_mut_dict['res_drug']
             # print(save_check, gene, aa_pos, resistance_phenotype)
         else:
             next
@@ -607,30 +606,30 @@ def get_rna_change(ref_seq, query_seq, sub_position):
     find substitution nuc in the zone of substitution of rna gene sequence
 
     """
-    sub_nuc_index=sub_position % 3 - 1
-    ref_nuc=ref_seq[sub_nuc_index]
-    query_nuc=query_seq[sub_nuc_index]
+    sub_nuc_index = sub_position % 3 - 1
+    ref_nuc = ref_seq[sub_nuc_index]
+    query_nuc = query_seq[sub_nuc_index]
     return ref_nuc, query_nuc
 
 
 def filter_result(mutation_dict, db_mutations, pm_db_list):
-    result=''
+    result = ''
     for key in mutation_dict.keys():
-        gene_name=key
+        gene_name = key
         # print(key)
         if key in pm_db_list:
             for item in mutation_dict[key]:
                 # print(key)
                 if item[0] == 'sub':
-                    sub_start_pos=item[2]
-                    aa_pos=math.ceil(sub_start_pos / 3)
-                    aa_ref, aa_alt=get_aa_seq(item[5], item[4])
+                    sub_start_pos = item[2]
+                    aa_pos = math.ceil(sub_start_pos / 3)
+                    aa_ref, aa_alt = get_aa_seq(item[5], item[4])
                     # print(item[2], item[5], aa_ref, aa_alt)
                     # print(item)
-                    save, gene, res_pheno=match_mut_indb(
+                    save, gene, res_pheno = match_mut_indb(
                         db_mutations, gene_name, aa_pos, aa_ref, aa_alt)
                 else:
-                    save=0
+                    save = 0
                     # print(save, gene, res_pheno)
                 if save:
                         # print(gene_name)
@@ -644,21 +643,21 @@ def filter_result(mutation_dict, db_mutations, pm_db_list):
         else:
             for item in mutation_dict[key]:
                 if item[0] == 'sub':
-                    sub_start_pos=item[2]
-                    ref_seq=item[5]
-                    alt_seq=item[4]
+                    sub_start_pos = item[2]
+                    ref_seq = item[5]
+                    alt_seq = item[4]
                     # nuc_ref, nuc_alt = get_rna_change(
                     #     ref_seq, alt_seq, sub_start_pos)
                     # xxx
-                    aa_ref=ref_seq
-                    aa_alt=alt_seq
-                    aa_pos=sub_start_pos
-                    save, gene, res_pheno=match_mut_indb(
+                    aa_ref = ref_seq
+                    aa_alt = alt_seq
+                    aa_pos = sub_start_pos
+                    save, gene, res_pheno = match_mut_indb(
                         db_mutations, gene_name, aa_pos, aa_ref, aa_alt)
                     # print('RNA')
                     # print(save, gene, res_pheno)
                 else:
-                    save=0
+                    save = 0
                 if save:
                     # print(gene_name)
                     result += f'{gene}\t{aa_ref}{aa_pos}{aa_alt}\t{item[5]} -> {item[4]}\t{aa_ref} -> {aa_alt}\t{res_pheno}\n'
@@ -671,7 +670,7 @@ def filter_result(mutation_dict, db_mutations, pm_db_list):
 
 def show_db_list():
     print('Datbase of point mutation')
-    db_path=os.path.join(os.path.dirname(__file__), 'db/point_mutation')
+    db_path = os.path.join(os.path.dirname(__file__), 'db/point_mutation')
     for file in os.listdir(db_path):
         if os.path.isdir(os.path.join(db_path, file)):
             print(file)
@@ -679,17 +678,17 @@ def show_db_list():
 
 def initialize_db():
     """Initialize BLAST databases for point mutation detection using pathlib."""
-    database_path=Path(__file__).parent / 'db/point_mutation'
+    database_path = Path(__file__).parent / 'db/point_mutation'
 
     for point_db_path in database_path.iterdir():
         if not point_db_path.is_dir():
             continue
 
-        point_db_name=point_db_path.name
-        fsa_file=point_db_path / f"{point_db_name}.fsa"
+        point_db_name = point_db_path.name
+        fsa_file = point_db_path / f"{point_db_name}.fsa"
 
         if fsa_file.exists():
-            out_path=point_db_path / point_db_name
+            out_path = point_db_path / point_db_name
             print(f'Making {point_db_name} point mutation database...')
             Blaster.makeblastdb(
                 file=str(fsa_file),
@@ -717,13 +716,13 @@ def process_genome_file(file_path: Path, config: ProcessingConfig) -> pd.DataFra
 
     # Run BLAST with lower coverage for 23S mutations
     blaster = Blaster(
-        inputfile = file_path,
-        database = config.blastdb,
-        output = config.output_path,
-        threads = config.threads,
-        minid = config.min_identity,
-        mincov = 20,  # Lower coverage threshold for 23S
-        blast_type = 'blastn'
+        inputfile=file_path,
+        database=config.blastdb,
+        output=config.output_path,
+        threads=config.threads,
+        minid=config.min_identity,
+        mincov=20,  # Lower coverage threshold for 23S
+        blast_type='blastn'
     )
     _, result_dict = blaster.biopython_blast()
 
@@ -745,6 +744,7 @@ def process_genome_file(file_path: Path, config: ProcessingConfig) -> pd.DataFra
         file_path.stem,
         config.output_path
     )
+
 
 def format_mutation_results(
     mutation_result: Dict,
@@ -827,11 +827,13 @@ def format_mutation_results(
     output_file = output_path / f'{file_name}_out.txt'
     df.to_csv(output_file, sep='\t', index=False)
     if df.empty:
-        logger.info(f"No mutations found. Empty results file with headers written to {output_file}")
+        logger.info(
+            f"No mutations found. Empty results file with headers written to {output_file}")
     else:
         logger.info(f"Results written to {output_file}")
 
     return df
+
 
 def process_genome_files(
     input_files: List[Path],
@@ -865,6 +867,7 @@ def process_genome_files(
 
     return df_pivot
 
+
 def main():
     args = args_parse()
 
@@ -877,7 +880,8 @@ def main():
 
     # Validate species
     if args.s not in SUPPORTED_SPECIES:
-        logger.error(f"Unsupported species. Supported species are: {', '.join(SUPPORTED_SPECIES)}")
+        logger.error(
+            f"Unsupported species. Supported species are: {', '.join(SUPPORTED_SPECIES)}")
         sys.exit(1)
 
     # Setup paths
@@ -899,8 +903,10 @@ def main():
     # Setup processing configuration
     config = ProcessingConfig(
         blastdb=Path(__file__).parent / f'db/point_mutation/{args.s}/{args.s}',
-        ref_fasta=Path(__file__).parent / f'db/point_mutation/{args.s}/{args.s}.fsa',
-        db_mutations=get_db_mutations(Path(__file__).parent / f'db/point_mutation/{args.s}/resistens-overview.txt'),
+        ref_fasta=Path(__file__).parent /
+        f'db/point_mutation/{args.s}/{args.s}.fsa',
+        db_mutations=get_db_mutations(
+            Path(__file__).parent / f'db/point_mutation/{args.s}/resistens-overview.txt'),
         genes=get_gene_list(args.s)[0],
         rna_genes=get_gene_list(args.s)[1],
         min_coverage=float(args.mincov),
@@ -915,9 +921,10 @@ def main():
     if not df_pivot.empty:
         summary_file = output_path / 'PointMutation_Summary.csv'
         df_pivot.to_csv(summary_file)
-        logger.info(f"Results written to {summary_file}")
+        logger.info(f"Summary results written to {summary_file}")
     else:
         logger.warning("No mutations found in any input files")
+
 
 if __name__ == '__main__':
     main()
