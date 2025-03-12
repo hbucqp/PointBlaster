@@ -18,7 +18,11 @@ except ImportError:
 
 
 requirements = [
-    'Bio', 'pandas', 'numpy', 'cvmblaster', 'setuptools'
+    'Bio',
+    'pandas',
+    'numpy',
+    'cvmblaster >= 0.4.5',
+    'setuptools'
 ]
 
 about = {}
@@ -50,16 +54,12 @@ setup(
     install_requires=requirements,
     classifiers=[
         # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         # Define that your audience are developers
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',   # Again, pick a license
         # Specify which pyhton versions that you want to support
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
     entry_points={
